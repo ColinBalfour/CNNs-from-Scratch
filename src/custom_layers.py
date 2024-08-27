@@ -80,7 +80,7 @@ class CustomReLULayer(torch.autograd.Function):
 
         # YOUR IMPLEMENTATION HERE!
         # parametric relu? max(u, a)
-        output = torch.max(input, 0)
+        output = torch.max(input, 0)[0]
         return output
 
     @staticmethod
@@ -90,9 +90,8 @@ class CustomReLULayer(torch.autograd.Function):
         grad_input = grad_output.clone()
         # YOUR IMPLEMENTATION HERE!
         # dReLU/dx = 1 if x > 0, 0 otherwise (heaviside)
-        grad_input[input < 0] = 0
-        
-        return grad_input
+        grad_input[input.squeeze(0) < 0] = 0 # squeeze and unsqueeze because grad_output is [10], but input is [1, 10]
+        return grad_input.unsqueeze(0)
 
 
 class CustomSoftmaxLayer(torch.autograd.Function):
@@ -118,6 +117,8 @@ class CustomSoftmaxLayer(torch.autograd.Function):
         # https://stackoverflow.com/questions/40575841/numpy-calculate-the-derivative-of-the-softmax-function
         SM = softmax_output.reshape((-1,1))
         grad_input = torch.diagflat(softmax_output) - torch.mm(SM, SM.T)
+        # print(grad_input.shape, grad_output.shape) # (3, 3) | (1, 3)
+        grad_input = torch.mm(grad_output, grad_input)
 
         # print(grad_input.shape)
         return grad_input, None
