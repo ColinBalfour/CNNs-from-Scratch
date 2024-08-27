@@ -45,16 +45,25 @@ class CustomLinearLayer(torch.autograd.Function):
         # for each output y_j = sum(u_i * w.T_(j, i))
         # => dy_j/dw_(a, b) = u_b when a = j, 0 otherwise
 
-        # "Psuedocode"
-        grad_weight = torch.zeros(weight.shape[0], *weight.shape)
-        for j in range(weight.shape[0]): # for each output
-            tmp_grad = torch.zeros_like(weight)
-            for a in range(weight.shape[0]): # for each output
-                for b in range(weight.shape[1]): # for each input
-                    tmp_grad[a, b] = input[b] if a == j else 0
-            grad_weight[j] = tmp_grad
-
+        # "Psuedocode" - should probably vectorize/optimize this
+        avg_weight = torch.zeros(weight.shape[0], *weight.shape)
         grad_bias = torch.ones_like(bias)
+
+        for batch in range(input.shape[0]):
+            grad_weight = torch.zeros(weight.shape[0], *weight.shape)
+            for j in range(weight.shape[0]): # for each output
+                tmp_grad = torch.zeros_like(weight)
+                for a in range(weight.shape[0]): # for each output
+                    for b in range(weight.shape[1]): # for each input
+                        tmp_grad[a, b] = input[batch, b] if a == j else 0
+                grad_weight[j] = tmp_grad
+            
+            avg_weight += grad_weight
+
+        grad_weight = avg_weight / input.shape[0]
+        grad_weight = torch.einsum('ij,jkl->kl', grad_output, grad_weight)
+
+        grad_bias = torch.einsum('ij,j->j', grad_output, grad_bias)
             
 
         # use either print or logger to print its outputs.
