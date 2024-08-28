@@ -122,7 +122,9 @@ class CustomSoftmaxLayer(torch.autograd.Function):
         # YOUR IMPLEMENTATION HERE!
         # https://stackoverflow.com/questions/40575841/numpy-calculate-the-derivative-of-the-softmax-function
         SM = softmax_output.unsqueeze(2)  # Shape: (batch_size, num_classes, 1)
-        grad_input = torch.diagflat(softmax_output) - torch.bmm(SM, SM.transpose(1, 2))
+        # print("dshdui")
+        # print(SM.shape)
+        grad_input = torch.diag_embed(softmax_output) - torch.bmm(SM, SM.transpose(1, 2))
         # print(grad_input.shape, grad_output.shape)
         grad_input = torch.einsum('bi,bij->bj', grad_output, grad_input)
 
