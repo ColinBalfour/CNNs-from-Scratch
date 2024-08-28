@@ -39,21 +39,19 @@ class CustomLinearLayer(torch.autograd.Function):
 
         # YOUR IMPLEMENTATION HERE!
 
-        ## Haven't done anything with batching yet ##
-
         # y = u * w_T + b
-        # dy/du = w_T
-        grad_input = weight.T
+        # dy/du = w
+        grad_input = torch.mm(grad_output, weight)
 
         # for each output y_j = sum(u_i * w.T_(j, i))
         # => dy_j/dw_(a, b) = u_b when a = j, 0 otherwise
 
         # "Psuedocode" - should probably vectorize/optimize this
-        avg_weight = torch.zeros(weight.shape[0], *weight.shape)
+        avg_weight = torch.zeros(weight.shape[0], *weight.shape).to('cuda')
         grad_bias = torch.ones_like(bias)
 
         for batch in range(input.shape[0]):
-            grad_weight = torch.zeros(weight.shape[0], *weight.shape)
+            grad_weight = torch.zeros(weight.shape[0], *weight.shape).to('cuda')
             for j in range(weight.shape[0]): # for each output
                 tmp_grad = torch.zeros_like(weight)
                 for a in range(weight.shape[0]): # for each output
@@ -73,6 +71,9 @@ class CustomLinearLayer(torch.autograd.Function):
         # make sure you disable before submitting
         # print(grad_input)
         # logger.info("grad_output: %s", grad_bias.shape)
+
+        print('lienar shapes')
+        print(grad_output.shape, grad_input.shape, grad_weight.shape, grad_bias.shape)
 
         return grad_input, grad_weight, grad_bias
     
