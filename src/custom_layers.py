@@ -13,6 +13,9 @@ class CustomLinearLayer(torch.autograd.Function):
 
         # YOUR IMPLEMENTATION HERE!
         # output=1 is a placeholder
+        # print(input.shape, weight.shape, bias.shape)
+        if input.dim() == 1:
+            input = input.unsqueeze(0) 
         output = torch.mm(input, weight.T) + bias # ??? is this it lol he gave us the formula
 
         return output
@@ -79,8 +82,11 @@ class CustomReLULayer(torch.autograd.Function):
         ctx.save_for_backward(input)
 
         # YOUR IMPLEMENTATION HERE!
-        # parametric relu? max(u, a)
-        output = torch.max(input, 0)[0]
+        # for some reason I couldnt get this to not reduce the dimentionality of the input
+        print(input.shape)
+        output = torch.maximum(input, torch.zeros_like(input))
+        print(output.shape)
+
         return output
 
     @staticmethod
@@ -90,8 +96,8 @@ class CustomReLULayer(torch.autograd.Function):
         grad_input = grad_output.clone()
         # YOUR IMPLEMENTATION HERE!
         # dReLU/dx = 1 if x > 0, 0 otherwise (heaviside)
-        grad_input[input.squeeze(0) < 0] = 0 # squeeze and unsqueeze because grad_output is [10], but input is [1, 10]
-        return grad_input.unsqueeze(0)
+        grad_input[input < 0] = 0 # squeeze and unsqueeze because grad_output is [10], but input is [1, 10] (nvm its not needed anymore but leaving this comment here in case it decides to be funky again)
+        return grad_input
 
 
 class CustomSoftmaxLayer(torch.autograd.Function):
@@ -115,10 +121,10 @@ class CustomSoftmaxLayer(torch.autograd.Function):
 
         # YOUR IMPLEMENTATION HERE!
         # https://stackoverflow.com/questions/40575841/numpy-calculate-the-derivative-of-the-softmax-function
-        SM = softmax_output.reshape((-1,1))
-        grad_input = torch.diagflat(softmax_output) - torch.mm(SM, SM.T)
-        # print(grad_input.shape, grad_output.shape) # (3, 3) | (1, 3)
-        grad_input = torch.mm(grad_output, grad_input)
+        SM = softmax_output.unsqueeze(2)  # Shape: (batch_size, num_classes, 1)
+        grad_input = torch.diagflat(softmax_output) - torch.bmm(SM, SM.transpose(1, 2))
+        # print(grad_input.shape, grad_output.shape)
+        grad_input = torch.einsum('bi,bij->bj', grad_output, grad_input)
 
         # print(grad_input.shape)
         return grad_input, None

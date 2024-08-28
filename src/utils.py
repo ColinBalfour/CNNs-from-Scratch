@@ -8,7 +8,6 @@ import numpy as np
 
 class Pipeline:
     def __init__(self):
-
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
         transform = transforms.Compose(
@@ -28,6 +27,7 @@ class Pipeline:
 
     def train_step(self, model, optimizer):
         model.train()
+
         epochloss = 0
         for batchcount, (images, labels) in enumerate(self.trainloader):
             images = images.to(self.device)
@@ -39,6 +39,11 @@ class Pipeline:
             optimizer.zero_grad()
 
             y = model(images)
+
+            print('thing')
+            print(images.shape)
+            print(y.shape)
+            print(labels.shape)
 
             loss = self.lossFunc(y, labels)     
             loss.backward()
