@@ -40,17 +40,21 @@ class Pipeline:
 
             y = model(images)
 
-            print('thing')
-            print(images.shape)
-            print(y.shape)
-            print(labels.shape)
+            # print('thing')
+            # print(images.shape)
+            # print(y.shape)
+            # print(labels.shape)
 
             loss = self.lossFunc(y, labels)     
             loss.backward()
 
+            # print('gradients computed')
+
             optimizer.step()
             
             epochloss += loss.item()
+
+            # print('batch done')
 
         return epochloss
 
