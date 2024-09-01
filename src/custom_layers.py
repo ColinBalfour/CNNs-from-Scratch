@@ -4,6 +4,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 import time
 import scipy # type: ignore
+import numpy as np
 class CustomLinearLayer(torch.autograd.Function):
     @staticmethod
     def forward(input, weight, bias):
@@ -148,19 +149,22 @@ class CustomConvLayer(torch.autograd.Function):
         batch, _, height, width = input.shape
 
         # YOUR IMPLEMENTATION HERE!
-        # output = torch.zeros(batch, out_ch, width // stride, height // stride)
-        # for i in range(batch):
-        #     for j in range(out_ch):
+        output = torch.zeros(batch, out_ch, width // stride, height // stride)
+        for i in range(batch):
+            for j in range(out_ch):
+                output[i, j] = sum([CustomConvLayer.cross_correlate(input[i, k], weight[j, k], stride) for k in range(in_ch)]) + bias[j]
 
         # return output
         return 1
     
     @staticmethod
     def cross_correlate(input, kernel, stride):
-        out = np.zeros((input.shape[0] // stride, input.shape[1] // stride))
-        for i in range(1, input.shape[0] - 1, stride):
-            for j in range(1, input.shape[1] - 1, stride):
-                filtered_image[i-1, j-1] = np.sum(img[i-1:i+2, j-1:j+2] * kernel)
+        # print(kernel)
+        out = torch.zeros((input.shape[0] // stride, input.shape[1] // stride))
+        for i in range(0, input.shape[0] - (kernel.shape[0] - 1), stride):
+            for j in range(0, input.shape[1] - (kernel.shape[1] - 1), stride):
+                out[i // stride, j // stride] = torch.sum(input[i:i+kernel.shape[0], j:j+kernel.shape[1]] * kernel)
+        return out
 
     @staticmethod
     def setup_context(ctx, inputs, output):
@@ -188,5 +192,7 @@ class CustomConvLayer(torch.autograd.Function):
         batch, _, height, width = input.shape
 
         # YOUR IMPLEMENTATION HERE!
+
+        
 
         return grad_input, grad_weight, grad_bias, None, None
