@@ -47,47 +47,8 @@ class CustomLinearLayer(torch.autograd.Function):
         # print("grad_input:", time.time() - t)
         # for each output y_j = sum(u_i * w.T_(j, i))
         # => dy_j/dw_(a, b) = u_b when a = j, 0 otherwise
-        
-        # avg_weight = torch.zeros(weight.shape[0], *weight.shape).to('cuda')
 
-        # "Psuedocode" - should probably vectorize/optimize this
-        # for batch in range(input.shape[0]):
-        #     grad_weight = torch.zeros(weight.shape[0], *weight.shape).to('cuda')
-        #     for j in range(weight.shape[0]): # for each output
-        #         tmp_grad = torch.zeros_like(weight)
-        #         for a in range(weight.shape[0]): # for each output
-        #             for b in range(weight.shape[1]): # for each input
-        #                 tmp_grad[a, b] = input[batch, b] if a == j else 0
-        #         grad_weight[j] = tmp_grad
-        #     print('thjing', grad_weight)
-            
-        #     avg_weight += grad_weight
-
-
-        # Too optimized version: (gpu is sad, if only we had infinite memory)
-        # Shape: (batch, output, output, input)
-        # grad_weight = torch.zeros(input.shape[0], weight.shape[0], *weight.shape,z)
-
-        # # Use broadcasting to fill the diagonal elements for all batches
-        # indices = torch.arange(weight.shape[0])
-        # grad_weight[:, indices, indices] = input.unsqueeze(1)
-
-
-        # Goldilocks
-        avg_weight = torch.zeros(weight.shape[0], *weight.shape, device='cuda')
-        grad_weight = torch.zeros(weight.shape[0], *weight.shape, device='cuda')
-        indices = torch.arange(weight.shape[0], device='cuda')
-        for batch in range(input.shape[0]):
-            # Fill diagonals with input values (identity * input)
-            grad_weight[indices, indices] = input[batch]
-            
-            # Accumulate the gradients
-            avg_weight += grad_weight
-        # print("avg_weight:", time.time() - t)
-
-        grad_weight = avg_weight / input.shape[0] # average over batch -> Shape: (output, output, input)
-        grad_weight = torch.einsum('ij,jkl->kl', grad_output, grad_weight) # Collapse the output dimension
-
+        grad_weight = torch.einsum('bi,bj->ij', grad_output, input)
         grad_bias = torch.einsum('ij,j->j', grad_output, torch.ones_like(bias))
             
         # use either print or logger to print its outputs.
@@ -187,11 +148,12 @@ class CustomConvLayer(torch.autograd.Function):
         batch, _, height, width = input.shape
 
         # YOUR IMPLEMENTATION HERE!
-        output = torch.zeros(batch, out_ch, width // stride, height // stride)
-        for i in range(batch):
-            for j in range(out_ch):
+        # output = torch.zeros(batch, out_ch, width // stride, height // stride)
+        # for i in range(batch):
+        #     for j in range(out_ch):
 
-        return output
+        # return output
+        return 1
     
     @staticmethod
     def cross_correlate(input, kernel, stride):
