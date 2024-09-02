@@ -105,8 +105,9 @@ class CustomSoftmaxLayer(torch.autograd.Function):
         # https://stackoverflow.com/questions/34968722/how-to-implement-the-softmax-function-in-python
 
         # YOUR IMPLEMENTATION HERE!
-        softmax_output = torch.exp(input) / torch.sum(torch.exp(input), dim=dim)
-
+        softmax_output = torch.exp(input) / torch.sum(
+            torch.exp(input), dim=1, keepdim=True
+        )
         # softmax_output = torch.nn.Softmax(dim=dim)(input)
 
         ctx.save_for_backward(softmax_output)
