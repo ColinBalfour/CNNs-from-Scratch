@@ -330,10 +330,23 @@
 % use a multiple column layout for up to three different
 % affiliations
 \author{\IEEEauthorblockN{Colin Balfour}
-\IEEEauthorblockA{School of Robotics Engineering\\
-Worcester Polytechnic Institute\\
-Worcester, Massachussetts 01609-2247
-}}
+  \IEEEauthorblockA{School of Robotics Engineering\\
+    Worcester Polytechnic Institute\\
+    Worcester, Massachussetts 01609-2247
+  }
+  \and
+  \IEEEauthorblockN{Khang Luu}
+  \IEEEauthorblockA{
+    Worcester Polytechnic Institute\\
+    Worcester, Massachussetts 01609-2247
+  }
+  \and
+
+  \IEEEauthorblockN{Thinh Nguyen}
+  \IEEEauthorblockA{
+    Worcester Polytechnic Institute\\
+    Worcester, Massachussetts 01609-2247
+  }}
 
 % conference papers do not typically use \thanks and this command
 % is locked out in conference mode. If really needed, such as for
@@ -368,7 +381,6 @@ Worcester, Massachussetts 01609-2247
 
 % make the title area
 \maketitle
-
 % As a general rule, do not put math, special symbols or citations
 % in the abstract
 % \begin{abstract}
@@ -392,44 +404,67 @@ Worcester, Massachussetts 01609-2247
 
 \section{Part 1}
 % no \IEEEPARstart
+For this part, we are implemeting custom layers for a multi-layer perceptron.
 
-
-
-\subsection{}
-
-
-\subsection{}
-
-
-\subsection{}
-
-
-
+\subsection{Results}
+All implementation yeilded the same results as with the Torch's built-in layers. The output is in the jupyter notebook.
 \section{Part 2}
 % no \IEEEPARstart
+\subsection{Implementation}
+We are training the MLP using the custom layers implemented in Part 1.
 
+\subsection{Results}
+% 1. Training loss curve (loss vs epoch count)
+\begin{figure}[!h]
+  \centering
+  \includegraphics[scale=0.4]{part2curve.png}
+  \caption{Training loss curve for part 2}
+\end{figure}
+% 2. Confusion Matrix for validation set (val_step)
+\begin{figure}[!h]
+  \centering
+  \includegraphics[scale=0.4]{part2epoch1.png}
+  \caption{Confusion matrix for part 2, epoch 1}
+\end{figure}
 
-\subsection{}
-
-
-\subsection{}
-
-
-\subsection{}
-
+\begin{figure}[!h]
+  \centering
+  \includegraphics[scale=0.4]{part2epoch39.png}
+  \caption{Confusion matrix for part 2, epoch 39}
+\end{figure}
 
 
 \section{Part 3}
 % no \IEEEPARstart
 
 
-\subsection{}
+\subsection{Implementation}
+We used Pytorch's built-in CNN layers to train a CNN model.
 
 
-\subsection{}
+\subsection{Results}
+% 1. Training loss curve (loss vs epoch count)
+\begin{figure}[!h]
+  \centering
+  \includegraphics[scale=0.4]{part3curve.png}
+  \caption{Training loss curve for part 3}
+\end{figure}
+% 2. Confusion Matrix for validation set (val_step)
+\begin{figure}[!h]
+  \centering
+  \includegraphics[scale=0.4]{part3epoch1.png}
+  \caption{Confusion matrix for part 3, epoch 1}
+\end{figure}
+
+\begin{figure}[!h]
+  \centering
+  \includegraphics[scale=0.4]{part3epoch39.png}
+  \caption{Confusion matrix for part 3, epoch 39}
+\end{figure}
 
 
-\subsection{}
+
+
 
 
 
@@ -458,6 +493,12 @@ Worcester, Massachussetts 01609-2247
 
 
 \subsection{}
+
+\section{Accurary comparson between MLP, CNN (torch layers) and CNN (custom layers)}
+
+On training with the same dataset and an epoch of 40, CNN (torch layers) performed consistently better than MLP (56.79\% vs. 43.68\%)
+
+With these inputs and hyperparameters, training the MLP took 8m 36s while the CNN with torch layers took 7m 28s.
 
 
 % An example of a floating figure using the graphicx package.

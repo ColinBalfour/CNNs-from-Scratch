@@ -1,10 +1,10 @@
-
 import importlib
 import torch
 import torch.nn as nn
 
 import networks as net
 import pytest
+
 
 def test_part1_linear():
     print("\nLinear")
@@ -40,7 +40,7 @@ def test_part1_linear_grad():
 
     loss_custom.backward()
     loss_in.backward()
-        
+
     assert torch.allclose(customLayer.bias.grad, inbuiltLayer.bias.grad, rtol=1e-4)
     assert torch.allclose(customLayer.weight.grad, inbuiltLayer.weight.grad, rtol=1e-4)
 
@@ -69,6 +69,7 @@ def test_part1_relu():
 
     assert torch.allclose(u1.grad, u2.grad, rtol=1e-4)
 
+
 def test_part1_sm():
     # SOFTMAX
     print("\n SoftMax")
@@ -92,26 +93,31 @@ def test_part1_sm():
 
     assert torch.allclose(u1.grad, u2.grad, rtol=1e-4)
 
+
 def test_part2_mlp_val():
     pipeline = net.Pipeline()
     model = net.CustomMLP().to("cpu")
-    model.load_state_dict(torch.load("./mlp.pth", map_location=torch.device('cpu')))
+    model.load_state_dict(torch.load("./mlp.pth", map_location=torch.device("cpu")))
 
     val_acc = pipeline.val_step(model)
 
     assert val_acc > 40
 
+
 def test_part3_cnn_torch_val():
     pipeline = net.Pipeline()
     model = net.RefCNN().to(pipeline.device)
-    model.load_state_dict(torch.load("./cnn_inbuilt.pth", map_location=torch.device('cpu')))
+    model.load_state_dict(
+        torch.load("./cnn_inbuilt.pth", map_location=torch.device("cpu"))
+    )
 
     val_acc = pipeline.val_step(model)
 
     assert val_acc > 53
 
+
 def test_part4_conv_inference():
-    inbuiltLayer = nn.Conv2d(2, 3, 3, stride=2, padding='valid')
+    inbuiltLayer = nn.Conv2d(2, 3, 3, stride=2, padding="valid")
     customLayer = net.CustomConv2d(2, 3, 3, 2)
 
     inbuiltLayer.weight.data.copy_(customLayer.weight.data)
@@ -128,7 +134,7 @@ def test_part4_conv_inference():
 
 
 def test_part4_conv_gradient():
-    inbuiltLayer = nn.Conv2d(2, 3, 3, stride=2, padding='valid')
+    inbuiltLayer = nn.Conv2d(2, 3, 3, stride=2, padding="valid")
     customLayer = net.CustomConv2d(2, 3, 3, 2)
 
     inbuiltLayer.weight.data.copy_(customLayer.weight.data)
@@ -152,19 +158,19 @@ def test_part4_conv_gradient():
     assert torch.allclose(inbuiltLayer.bias.grad, customLayer.bias.grad, rtol=1e-4)
     assert torch.allclose(u1.grad, u2.grad, rtol=1e-4)
 
+
 # pip install pytest-timeout
-@pytest.mark.timeout(60) 
+@pytest.mark.timeout(60)
 def test_part5_cnn_custom_val():
     pipeline = net.Pipeline()
     model = net.CustomCNN().to(pipeline.device)
-    model.load_state_dict(torch.load("./cnn_custom.pth", map_location=torch.device('cpu')))
+    model.load_state_dict(
+        torch.load("./cnn_custom.pth", map_location=torch.device("cpu"))
+    )
 
     val_acc = pipeline.val_step(model)
 
     assert val_acc > 53
 
+
 pytest.main()
-
-
-
-
