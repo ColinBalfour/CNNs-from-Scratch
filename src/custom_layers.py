@@ -105,10 +105,8 @@ class CustomSoftmaxLayer(torch.autograd.Function):
         # https://stackoverflow.com/questions/34968722/how-to-implement-the-softmax-function-in-python
 
         # YOUR IMPLEMENTATION HERE!
-        softmax_output = torch.exp(input) / torch.sum(
-            torch.exp(input), dim=1, keepdim=True
-        )
         # softmax_output = torch.nn.Softmax(dim=dim)(input)
+        softmax_output = torch.exp(input) / torch.sum(torch.exp(input), dim=1, keepdim=True)
 
         ctx.save_for_backward(softmax_output)
         ctx.dim = dim
@@ -164,35 +162,28 @@ class CustomConvLayer(torch.autograd.Function):
         batch, _, height, width = input.shape
 
         # YOUR IMPLEMENTATION HERE!
+        t = time.time()
         output = torch.zeros(batch, out_ch, width // stride, height // stride)
         for i in range(batch):
             for j in range(out_ch):
-                output[i, j] = (
-                    sum(
-                        [
-                            CustomConvLayer.cross_correlate(
-                                input[i, k], weight[j, k], stride
-                            )
-                            for k in range(in_ch)
-                        ]
-                    )
-                    + bias[j]
-                )
+                output[i, j] = sum([CustomConvLayer.cross_correlate(input[i, k], weight[j, k], stride) for k in range(in_ch)]) + bias[j]
 
+        # print("forward:", time.time() - t)
         return output
 
     @staticmethod
     def cross_correlate(input, kernel, stride):
         # print(kernel)
-        out = torch.zeros(
-            (input.shape[0] - kernel.shape[0]) // stride + 1,
-            (input.shape[1] - kernel.shape[1]) // stride + 1,
-        )
-        for i in range(0, input.shape[0] - (kernel.shape[0] - 1), stride):
-            for j in range(0, input.shape[1] - (kernel.shape[1] - 1), stride):
-                out[i // stride, j // stride] = torch.sum(
-                    input[i : i + kernel.shape[0], j : j + kernel.shape[1]] * kernel
-                )
+        t = time.time()
+        # out = torch.zeros((input.shape[0] - kernel.shape[0]) // stride + 1, (input.shape[1] - kernel.shape[1]) // stride + 1)
+        # for i in range(0, input.shape[0] - (kernel.shape[0] - 1), stride):
+        #     for j in range(0, input.shape[1] - (kernel.shape[1] - 1), stride):
+        #         out[i // stride, j // stride] = torch.sum(input[i:i+kernel.shape[0], j:j+kernel.shape[1]] * kernel)
+                
+        unfolded_input = input.unfold(0, kernel.shape[0], stride).unfold(1, kernel.shape[1], stride)
+        out = torch.einsum('ijkl,kl->ij', unfolded_input, kernel)
+        
+        # print("cross_correlate:", time.time() - t)
         return out
 
     @staticmethod
