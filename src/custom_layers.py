@@ -5,6 +5,7 @@ logger = logging.getLogger(__name__)
 import time
 import scipy # type: ignore
 import numpy as np
+import torch.nn.functional as F
 class CustomLinearLayer(torch.autograd.Function):
     @staticmethod
     def forward(input, weight, bias):
@@ -154,13 +155,12 @@ class CustomConvLayer(torch.autograd.Function):
             for j in range(out_ch):
                 output[i, j] = sum([CustomConvLayer.cross_correlate(input[i, k], weight[j, k], stride) for k in range(in_ch)]) + bias[j]
 
-        # return output
-        return 1
+        return output
     
     @staticmethod
     def cross_correlate(input, kernel, stride):
         # print(kernel)
-        out = torch.zeros((input.shape[0] // stride, input.shape[1] // stride))
+        out = torch.zeros((input.shape[0] - kernel.shape[0]) // stride + 1, (input.shape[1] - kernel.shape[1]) // stride + 1)
         for i in range(0, input.shape[0] - (kernel.shape[0] - 1), stride):
             for j in range(0, input.shape[1] - (kernel.shape[1] - 1), stride):
                 out[i // stride, j // stride] = torch.sum(input[i:i+kernel.shape[0], j:j+kernel.shape[1]] * kernel)
@@ -193,6 +193,25 @@ class CustomConvLayer(torch.autograd.Function):
 
         # YOUR IMPLEMENTATION HERE!
 
-        
+        grad_input = torch.zeros_like(input)
+        print(grad_input.shape, out_ch, in_ch)
+        output_kernel = torch.zeros((kernel, kernel))
+        for b in range(batch):
+            for j in range(out_ch):
+                output_kernel[::stride, ::stride] = grad_output[b, j]
+                for k in range(in_ch):
+                    grad_input[b, k] += scipy.signal.correlate2d(output_kernel, weight[j, k].flip(0).flip(1), mode='full')
+                    # grad_input[b, k] += CustomConvLayer.cross_correlate(output_kernel, weight[j, k].flip(0).flip(1), 1)
+
+        grad_weight = torch.zeros_like(weight)
+        print(weight.shape, grad_weight.shape)
+        output_kernel = torch.zeros((kernel, kernel))
+        for b in range(batch):
+            for j in range(out_ch):
+                output_kernel[::stride, ::stride] = grad_output[b, j]
+                for k in range(in_ch):
+                    grad_weight[j, k] += CustomConvLayer.cross_correlate(input[b, k], output_kernel, 1)
+
+        grad_bias = torch.sum(grad_output, dim=(0, 2, 3))
 
         return grad_input, grad_weight, grad_bias, None, None
