@@ -194,7 +194,7 @@ class CustomConvLayer(torch.autograd.Function):
         # YOUR IMPLEMENTATION HERE!
 
         grad_input = torch.zeros_like(input)
-        print(grad_input.shape, out_ch, in_ch)
+        # print(grad_input.shape, out_ch, in_ch)
         output_kernel = torch.zeros((kernel, kernel))
         for b in range(batch):
             for j in range(out_ch):
@@ -204,7 +204,7 @@ class CustomConvLayer(torch.autograd.Function):
                     # grad_input[b, k] += CustomConvLayer.cross_correlate(output_kernel, weight[j, k].flip(0).flip(1), 1)
 
         grad_weight = torch.zeros_like(weight)
-        print(weight.shape, grad_weight.shape)
+        # print(weight.shape, grad_weight.shape)
         output_kernel = torch.zeros((kernel, kernel))
         for b in range(batch):
             for j in range(out_ch):
