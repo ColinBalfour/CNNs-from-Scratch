@@ -163,7 +163,7 @@ class CustomConvLayer(torch.autograd.Function):
 
         # YOUR IMPLEMENTATION HERE!
         t = time.time()
-        output = torch.zeros(batch, out_ch, width // stride, height // stride)
+        output = torch.zeros(batch, out_ch, (width - kernel) // stride + 1, (height - kernel) // stride + 1, device=input.device)
         for i in range(batch):
             for j in range(out_ch):
                 output[i, j] = sum([CustomConvLayer.cross_correlate(input[i, k], weight[j, k], stride) for k in range(in_ch)]) + bias[j]
@@ -175,10 +175,14 @@ class CustomConvLayer(torch.autograd.Function):
     def cross_correlate(input, kernel, stride):
         # print(kernel)
         t = time.time()
-        # out = torch.zeros((input.shape[0] - kernel.shape[0]) // stride + 1, (input.shape[1] - kernel.shape[1]) // stride + 1)
+        # out = torch.zeros((input.shape[0] - kernel.shape[0]) // stride + 1, (input.shape[1] - kernel.shape[1]) // stride + 1, device=input.device)
+        # print(out.shape)
         # for i in range(0, input.shape[0] - (kernel.shape[0] - 1), stride):
         #     for j in range(0, input.shape[1] - (kernel.shape[1] - 1), stride):
+                # print(i, j)
         #         out[i // stride, j // stride] = torch.sum(input[i:i+kernel.shape[0], j:j+kernel.shape[1]] * kernel)
+
+        print("cross_correlate:", time.time() - t)
                 
         unfolded_input = input.unfold(0, kernel.shape[0], stride).unfold(1, kernel.shape[1], stride)
         out = torch.einsum('ijkl,kl->ij', unfolded_input, kernel)
